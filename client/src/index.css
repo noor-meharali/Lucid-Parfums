@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+/**
+ * Lucid Parfums design tokens.
+ * Full design system (typography scale, components) arrives in Part 2.
+ * These base tokens exist now so every future part builds on one palette.
+ */
+@theme {
+  --color-ivory: #fdfbf7;
+  --color-cream: #f7f2ea;
+  --color-offwhite: #f4f1ec;
+  --color-beige: #e8dfd0;
+  --color-champagne: #e3c9a1;
+  --color-sand: #d8c3a5;
+  --color-taupe: #9c8b76;
+  --color-espresso: #4a3728;
+  --color-charcoal: #211d1a;
+  --color-gold: #b08d57;
+  --color-bronze: #8c6d4f;
+
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-ivory);
+  color: var(--color-charcoal);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
