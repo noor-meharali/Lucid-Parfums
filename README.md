@@ -16,18 +16,24 @@ lucid-parfums/
 ├── client/                  React frontend
 │   └── src/
 │       ├── api/             Fetch wrapper for talking to the backend
-│       ├── components/      common, layout, product, cart, checkout, admin
-│       ├── constants/       Route paths, app config
-│       ├── context/         React context providers (added as needed)
-│       ├── data/            Static/local data (added as needed)
-│       ├── hooks/           Reusable hooks (e.g. useHealthCheck)
+│       ├── components/
+│       │   ├── common/      Button, Card, Modal, Drawer, Toast, Badge, etc.
+│       │   ├── form/        Input, Textarea, Select, Checkbox, Radio, FileUpload
+│       │   ├── layout/      Header, Footer, MobileNav, SearchBar
+│       │   ├── cart/        CartIcon, CartDrawer, CartItem, QuantityControl
+│       │   ├── product/     ProductCard
+│       │   └── admin/       (empty — reserved for the Admin Dashboard part)
+│       ├── constants/       Route paths, nav links, app config
+│       ├── context/         ToastContext
+│       ├── data/            Isolated mock data (mockProducts.ts)
+│       ├── hooks/           useHealthCheck, useLockBodyScroll, useFocusTrap, etc.
 │       ├── layouts/         MainLayout, AdminLayout
 │       ├── pages/           One component per route
 │       ├── routes/          Router configuration
 │       ├── services/        API-calling functions grouped by domain
 │       ├── store/           Global state (added as needed)
 │       ├── types/           Shared TypeScript types
-│       └── utils/           Small helper functions
+│       └── utils/           cn, formatPrice, placeholderImage
 │
 ├── server/                  Express API
 │   └── src/
@@ -118,16 +124,39 @@ espresso, and muted gold/bronze — no blue. Typography pairs a serif display
 face (Cormorant Garamond) with a clean sans body face (Inter). The full design
 system, header, footer, and UI kit are built in Part 2.
 
+## Design System (Part 2)
+
+A full visual foundation lives under `client/src/components/`:
+
+- **`common/`** — Button, IconButton, Badge, Card, Modal, Drawer, Toast, Spinner,
+  Skeleton, EmptyState, ErrorState, ResponsiveImage, Logo, BrandDivider
+- **`form/`** — Input (text/email/password/search), Textarea, Select, Checkbox,
+  Radio, FileUpload, all sharing a common FieldShell for label/error/helper text
+- **`layout/`** — Header, Footer, MobileNav, SearchBar
+- **`cart/`** — CartIcon, CartDrawer, CartItem, QuantityControl, CartSummary
+  (visual only — no persistence or checkout logic yet)
+- **`product/`** — ProductCard, backed by isolated mock data in `data/mockProducts.ts`
+
+All colors, type sizes, radii, shadows, and easing curves are defined once in
+`client/src/index.css` under `@theme`. No blue anywhere in the palette.
+
 ## Status
 
 **Part 1 — Foundation: complete.**
+**Part 2 — Design System & Global UI: complete.**
 
 - [x] Frontend and backend scaffolded with a clean, modular structure
-- [x] Tailwind CSS v4 configured with the brand palette
+- [x] Tailwind CSS v4 configured with the brand palette and full design tokens
 - [x] Full routing foundation with placeholder pages
 - [x] Express server with centralized error handling and a working health check
 - [x] MongoDB/Mongoose connection module ready
 - [x] Environment variable templates for every planned integration
 - [x] TypeScript strict mode on both apps, compiling cleanly
+- [x] Reusable component library: buttons, forms, cards, badges, modals, drawers,
+      toasts, loading/empty/error states
+- [x] Responsive header with mobile navigation drawer, and a full footer
+- [x] Accessibility basics: focus traps, Escape-to-close, visible focus rings,
+      reduced-motion support
 
-**Next: Part 2 — Design System, Global UI, Header, Footer, Buttons, Forms, Responsive Layout.**
+**Next: Part 3 — Public Storefront (homepage, hero, category sections, featured
+products, brand storytelling).**

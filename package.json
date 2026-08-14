@@ -1,0 +1,13 @@
+{
+  "name": "lucid-parfums",
+  "version": "1.0.0",
+  "description": "A premium fragrance e-commerce platform. This repository is being built in parts; this is the **foundation** — project structure, tooling, and the pieces every future part builds on.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

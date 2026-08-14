@@ -6,6 +6,7 @@ import { AdminLayout } from '@/layouts/AdminLayout';
 import { HomePage } from '@/pages/HomePage';
 import { ShopPage } from '@/pages/ShopPage';
 import { CategoryPage } from '@/pages/CategoryPage';
+import { AboutPage } from '@/pages/AboutPage';
 import { ProductDetailPage } from '@/pages/ProductDetailPage';
 import { CartPage } from '@/pages/CartPage';
 import { CheckoutPage } from '@/pages/CheckoutPage';
@@ -29,6 +30,7 @@ const router = createBrowserRouter([
       { path: ROUTES.WOMEN, element: <CategoryPage title="Women" /> },
       { path: ROUTES.UNISEX, element: <CategoryPage title="Unisex" /> },
       { path: ROUTES.FRAGRANCE, element: <CategoryPage title="Fragrance" /> },
+      { path: ROUTES.ABOUT, element: <AboutPage /> },
       { path: ROUTES.PRODUCT_DETAIL, element: <ProductDetailPage /> },
       { path: ROUTES.CART, element: <CartPage /> },
       { path: ROUTES.CHECKOUT, element: <CheckoutPage /> },

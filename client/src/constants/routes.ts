@@ -9,6 +9,7 @@ export const ROUTES = {
   WOMEN: '/women',
   UNISEX: '/unisex',
   FRAGRANCE: '/fragrance',
+  ABOUT: '/about',
   PRODUCT_DETAIL: '/product/:slug',
   CART: '/cart',
   CHECKOUT: '/checkout',
