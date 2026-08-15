@@ -140,16 +140,34 @@ A full visual foundation lives under `client/src/components/`:
 All colors, type sizes, radii, shadows, and easing curves are defined once in
 `client/src/index.css` under `@theme`. No blue anywhere in the palette.
 
+## Public Storefront (Part 3)
+
+The homepage now composes real sections under `client/src/components/home/`:
+
+- **Hero** — headline, CTA, and an inline-SVG bottle illustration (no stock photography)
+- **CategoryTiles** — shop-by-category entry points for Men, Women, Unisex, Fragrance
+- **Benefits** — shipping/returns/packaging value props
+- **BrandStory** — brand philosophy section with a botanical line illustration
+- **Testimonials** — illustrative customer quotes (clearly marked as placeholder,
+  not real reviews — swap in real review data once that feature exists)
+
+Product rows (Featured, New Arrivals, Best Sellers) use the shared
+`ProductSection` component (`components/product/ProductSection.tsx`), filtering
+`mockProducts` by badge. Swapping in real API data later only means changing
+what's passed to `ProductSection` — the component itself doesn't change.
+
 ## Status
 
 **Part 1 — Foundation: complete.**
 **Part 2 — Design System & Global UI: complete.**
+**Part 3 — Public Storefront: complete.**
 
 - [x] Frontend and backend scaffolded with a clean, modular structure
 - [x] Tailwind CSS v4 configured with the brand palette and full design tokens
 - [x] Full routing foundation with placeholder pages
 - [x] Express server with centralized error handling and a working health check
-- [x] MongoDB/Mongoose connection module ready
+- [x] MongoDB/Mongoose connection module ready, with fast-fail diagnostics on a
+      bad connection string
 - [x] Environment variable templates for every planned integration
 - [x] TypeScript strict mode on both apps, compiling cleanly
 - [x] Reusable component library: buttons, forms, cards, badges, modals, drawers,
@@ -157,6 +175,8 @@ All colors, type sizes, radii, shadows, and easing curves are defined once in
 - [x] Responsive header with mobile navigation drawer, and a full footer
 - [x] Accessibility basics: focus traps, Escape-to-close, visible focus rings,
       reduced-motion support
+- [x] Real homepage: hero, category tiles, featured/new/best-seller product rows,
+      brand story, benefits, testimonials
 
-**Next: Part 3 — Public Storefront (homepage, hero, category sections, featured
-products, brand storytelling).**
+**Next: Part 4 — Product Catalog & Detail Pages (real product data from the
+backend, replacing `mockProducts`).**

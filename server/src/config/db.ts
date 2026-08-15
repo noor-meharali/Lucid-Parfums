@@ -17,7 +17,22 @@ export async function connectDatabase(): Promise<void> {
     logger.warn('MongoDB connection lost');
   });
 
-  await mongoose.connect(env.databaseUrl);
+  try {
+    await mongoose.connect(env.databaseUrl, {
+      // Fail fast instead of hanging: surfaces a bad URI, wrong
+      // credentials, or an un-whitelisted IP within 10s instead of
+      // the driver's much longer default.
+      serverSelectionTimeoutMS: 10000,
+    });
+  } catch (error) {
+    const message = (error as Error).message;
+    logger.error(
+      `Could not connect to MongoDB: ${message}. ` +
+        'Check DATABASE_URL in your .env, your database user\'s credentials, ' +
+        'and — if using Atlas — that your current IP is on the cluster\'s Network Access list.',
+    );
+    throw error;
+  }
 }
 
 export async function disconnectDatabase(): Promise<void> {
