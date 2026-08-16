@@ -1,9 +1,8 @@
 /**
  * Generates an on-brand inline SVG placeholder — a simple perfume
- * bottle silhouette — as a data URI. Used only by mock product data
- * so the design system never depends on external stock photography.
- * Swapping to real product photography later is just changing the
- * `imageUrl` string; ProductCard and ResponsiveImage don't change.
+ * bottle silhouette — as a data URI. Used only by the demo seed data
+ * so the catalog never depends on external stock photography before
+ * a real image pipeline exists. Mirrors client/src/utils/placeholderImage.ts.
  */
 export function bottlePlaceholder(fill: string, background: string): string {
   const svg = `

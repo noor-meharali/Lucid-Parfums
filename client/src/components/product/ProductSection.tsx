@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { ProductCard } from '@/components/product/ProductCard';
+import { ProductCardSkeleton } from '@/components/common/Skeleton';
 import type { Product } from '@/types/product';
 
 interface ProductSectionProps {
   eyebrow: string;
   title: string;
   products: Product[];
+  isLoading?: boolean;
   viewAllHref?: string;
   viewAllLabel?: string;
 }
@@ -17,8 +19,15 @@ interface ProductSectionProps {
  * Category listing pages can reuse this once they need the same
  * heading + grid pattern.
  */
-export function ProductSection({ eyebrow, title, products, viewAllHref, viewAllLabel = 'View all' }: ProductSectionProps) {
-  if (products.length === 0) return null;
+export function ProductSection({
+  eyebrow,
+  title,
+  products,
+  isLoading = false,
+  viewAllHref,
+  viewAllLabel = 'View all',
+}: ProductSectionProps) {
+  if (!isLoading && products.length === 0) return null;
 
   return (
     <section>
@@ -38,9 +47,9 @@ export function ProductSection({ eyebrow, title, products, viewAllHref, viewAllL
         )}
       </div>
       <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
+        {isLoading
+          ? Array.from({ length: 4 }).map((_, index) => <ProductCardSkeleton key={index} />)
+          : products.map((product) => <ProductCard key={product.id} product={product} />)}
       </div>
     </section>
   );

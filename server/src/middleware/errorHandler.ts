@@ -24,5 +24,8 @@ export function errorHandler(
   }
 
   const body: ApiErrorResponse = { success: false, message };
+  if (isApiError && err.errors) {
+    body.errors = err.errors;
+  }
   res.status(statusCode).json(body);
 }

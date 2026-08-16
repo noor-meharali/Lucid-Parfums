@@ -5,14 +5,16 @@ import { BrandStory } from '@/components/home/BrandStory';
 import { Testimonials } from '@/components/home/Testimonials';
 import { Container } from '@/components/common/Container';
 import { ProductSection } from '@/components/product/ProductSection';
-import { mockProducts } from '@/data/mockProducts';
+import { useProducts } from '@/hooks/useProducts';
 import { ROUTES } from '@/constants/routes';
 
-const featuredProducts = mockProducts.filter((product) => product.badges?.includes('featured'));
-const newArrivals = mockProducts.filter((product) => product.badges?.includes('new'));
-const bestSellers = mockProducts.filter((product) => product.badges?.includes('bestseller'));
+const ROW_LIMIT = 4;
 
 export function HomePage() {
+  const featured = useProducts({ featured: true, limit: ROW_LIMIT, sort: 'newest' });
+  const newArrivals = useProducts({ newArrival: true, limit: ROW_LIMIT, sort: 'newest' });
+  const bestSellers = useProducts({ bestSeller: true, limit: ROW_LIMIT, sort: 'popularity' });
+
   return (
     <>
       <Hero />
@@ -23,7 +25,8 @@ export function HomePage() {
           <ProductSection
             eyebrow="Curated Edit"
             title="Featured"
-            products={featuredProducts}
+            products={featured.products}
+            isLoading={featured.isLoading}
             viewAllHref={ROUTES.SHOP}
           />
         </Container>
@@ -36,7 +39,8 @@ export function HomePage() {
           <ProductSection
             eyebrow="Just In"
             title="New Arrivals"
-            products={newArrivals}
+            products={newArrivals.products}
+            isLoading={newArrivals.isLoading}
             viewAllHref={ROUTES.SHOP}
           />
         </Container>
@@ -49,7 +53,8 @@ export function HomePage() {
           <ProductSection
             eyebrow="Customer Favorites"
             title="Best Sellers"
-            products={bestSellers}
+            products={bestSellers.products}
+            isLoading={bestSellers.isLoading}
             viewAllHref={ROUTES.SHOP}
           />
         </Container>

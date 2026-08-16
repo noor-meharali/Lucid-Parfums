@@ -91,14 +91,28 @@ The home page shows a live "Backend connected" indicator once both are running.
 
 ## Database
 
-This foundation includes the Mongoose connection module (`server/src/config/db.ts`)
-but no models yet — those are added in their dedicated parts. To run the server
-with a real database:
+The Mongoose connection module (`server/src/config/db.ts`) connects on server
+start and fails fast (10s) with a clear message if `DATABASE_URL` is wrong —
+bad credentials, wrong cluster address, or (on Atlas) an IP not on the
+Network Access list. To run the server with a real database:
 
 - **Local**: install MongoDB Community Edition and leave `DATABASE_URL` pointing
   at `mongodb://127.0.0.1:27017/lucid-parfums`, or
 - **Hosted**: create a free cluster on MongoDB Atlas and paste its connection
   string into `DATABASE_URL`.
+
+### Seeding demo products
+
+With a real `.env` in place:
+
+```bash
+cd server
+npm run seed
+```
+
+This populates 15 demo fragrances (upserted by slug, so it's safe to re-run).
+Real product photography can replace the generated placeholder images later —
+just update `primaryImage` / `images` on each product; nothing else changes.
 
 ## Available Scripts
 
@@ -116,6 +130,7 @@ with a real database:
 | `npm run build` | Compile TypeScript to `dist/` |
 | `npm start` | Run the compiled server (`dist/server.js`) |
 | `npm run typecheck` | Type-check without emitting output |
+| `npm run seed` | Populate the database with 15 demo products |
 
 ## Design Direction
 
@@ -156,11 +171,33 @@ Product rows (Featured, New Arrivals, Best Sellers) use the shared
 `mockProducts` by badge. Swapping in real API data later only means changing
 what's passed to `ProductSection` — the component itself doesn't change.
 
+## Products, Shop & Search (Part 4)
+
+Real MongoDB-backed products have replaced the mock catalog:
+
+- **`server/src/models/Product.ts`** — full schema (pricing, sizes, notes,
+  fragrance family, stock, flags) with text-search and filter indexes
+- **`server/src/routes/product.route.ts`** — `GET /api/products` (list, with
+  search/filter/sort/pagination via query params), `GET /api/products/:slug`,
+  and admin-only `POST` / `PUT` / `DELETE`
+- **Admin write endpoints are guarded** by `middleware/requireAdmin.ts`, which
+  fails closed on every request until real authentication exists in a later
+  part — there is no way to create, edit, or archive a product without it,
+  regardless of what the frontend sends
+- **`server/src/seed/`** — 15 realistic demo products across every gender and
+  fragrance family. Run `npm run seed` from `server/` (with a real `.env` in
+  place) to populate your database
+- **Frontend** — `services/productService.ts` + `hooks/useProducts.ts` fetch
+  real data; `/shop` has full search/filter/sort/pagination synced to the URL
+  (`?gender=women&sort=price-low`), and `/men /women /unisex /fragrance` share
+  the same fetching hook instead of duplicating it per page
+
 ## Status
 
 **Part 1 — Foundation: complete.**
 **Part 2 — Design System & Global UI: complete.**
 **Part 3 — Public Storefront: complete.**
+**Part 4 — Products, Shop, Search, Categories & Filtering: complete.**
 
 - [x] Frontend and backend scaffolded with a clean, modular structure
 - [x] Tailwind CSS v4 configured with the brand palette and full design tokens
@@ -177,6 +214,10 @@ what's passed to `ProductSection` — the component itself doesn't change.
       reduced-motion support
 - [x] Real homepage: hero, category tiles, featured/new/best-seller product rows,
       brand story, benefits, testimonials
+- [x] Real MongoDB product catalog with search, filters, sorting, and pagination
+- [x] Shop page and all four collection pages backed by live data
+- [x] Admin write endpoints secured by a fail-closed guard (real auth is a
+      later part)
 
-**Next: Part 4 — Product Catalog & Detail Pages (real product data from the
-backend, replacing `mockProducts`).**
+**Next: Part 5 — Product Details, Product Gallery, Fragrance Notes, Reviews &
+Related Products.**

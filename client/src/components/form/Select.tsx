@@ -18,11 +18,16 @@ interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'id'
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
-  { id, label, error, helperText, required, className, options, placeholder, defaultValue, ...props },
+  { id, label, error, helperText, required, className, options, placeholder, defaultValue, value, ...props },
   ref,
 ) {
   const generatedId = useId();
   const selectId = id ?? generatedId;
+  // Controlled (`value` passed) and uncontrolled (`defaultValue`/
+  // neither passed) modes are mutually exclusive — mixing them
+  // triggers a React warning, so only set defaultValue when the
+  // caller isn't controlling this select.
+  const isControlled = value !== undefined;
 
   return (
     <FieldShell label={label} htmlFor={selectId} error={error} helperText={helperText} required={required}>
@@ -31,7 +36,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
           ref={ref}
           id={selectId}
           required={required}
-          defaultValue={defaultValue ?? (placeholder ? '' : undefined)}
+          value={value}
+          defaultValue={isControlled ? undefined : (defaultValue ?? (placeholder ? '' : undefined))}
           aria-invalid={Boolean(error) || undefined}
           aria-describedby={fieldMessageId(selectId, Boolean(error || helperText))}
           className={cn(

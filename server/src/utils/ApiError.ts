@@ -7,16 +7,19 @@
 export class ApiError extends Error {
   statusCode: number;
   isOperational: boolean;
+  /** Field-level validation messages, when this error came from request validation. */
+  errors?: Record<string, string[]>;
 
-  constructor(statusCode: number, message: string) {
+  constructor(statusCode: number, message: string, errors?: Record<string, string[]>) {
     super(message);
     this.statusCode = statusCode;
     this.isOperational = true;
+    this.errors = errors;
     Error.captureStackTrace(this, this.constructor);
   }
 
-  static badRequest(message = 'Bad request') {
-    return new ApiError(400, message);
+  static badRequest(message = 'Bad request', errors?: Record<string, string[]>) {
+    return new ApiError(400, message, errors);
   }
 
   static unauthorized(message = 'Unauthorized') {
