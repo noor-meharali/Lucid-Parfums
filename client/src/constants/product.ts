@@ -1,4 +1,17 @@
+import { ROUTES } from '@/constants/routes';
 import type { FragranceFamily, ProductGender, ProductListParams } from '@/types/product';
+
+export const GENDER_LABELS: Record<ProductGender, string> = {
+  men: 'Men',
+  women: 'Women',
+  unisex: 'Unisex',
+};
+
+export const GENDER_ROUTES: Record<ProductGender, string> = {
+  men: ROUTES.MEN,
+  women: ROUTES.WOMEN,
+  unisex: ROUTES.UNISEX,
+};
 
 export const GENDER_OPTIONS: { value: ProductGender; label: string }[] = [
   { value: 'men', label: 'Men' },

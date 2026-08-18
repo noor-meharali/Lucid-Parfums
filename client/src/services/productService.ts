@@ -28,4 +28,7 @@ export const productService = {
     apiClient.get<ApiResponse<PaginatedResult<Product>>>(`/products${buildQueryString(params)}`),
 
   getBySlug: (slug: string) => apiClient.get<ApiResponse<Product>>(`/products/${encodeURIComponent(slug)}`),
+
+  getRelated: (slug: string) =>
+    apiClient.get<ApiResponse<Product[]>>(`/products/${encodeURIComponent(slug)}/related`),
 };

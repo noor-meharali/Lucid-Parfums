@@ -1,12 +1,16 @@
 import { connectDatabase, disconnectDatabase } from '../config/db';
 import { Product } from '../models/Product';
+import { Review } from '../models/Review';
 import { productSeeds } from './products.seed';
+import { reviewSeedsBySlug } from './reviews.seed';
 import { logger } from '../utils/logger';
 
 /**
  * Seeds the demo catalog into whatever database DATABASE_URL points
- * at. Upserts by slug, so it's safe to run repeatedly — existing
- * products are updated in place rather than duplicated.
+ * at. Upserts products by slug, so it's safe to run repeatedly —
+ * existing products are updated in place rather than duplicated.
+ * Reviews are only inserted for a product the first time it has none,
+ * so re-running never piles up duplicate reviews either.
  *
  * Usage: npm run seed   (from server/, with a real .env in place)
  */
@@ -26,7 +30,21 @@ async function run(): Promise<void> {
     else updated += 1;
   }
 
-  logger.info(`Seed complete: ${created} product(s) created, ${updated} updated.`);
+  let reviewsInserted = 0;
+  for (const [slug, reviews] of Object.entries(reviewSeedsBySlug)) {
+    const product = await Product.findOne({ slug });
+    if (!product) continue;
+
+    const existingCount = await Review.countDocuments({ product: product._id });
+    if (existingCount > 0) continue;
+
+    await Review.insertMany(reviews.map((review) => ({ ...review, product: product._id })));
+    reviewsInserted += reviews.length;
+  }
+
+  logger.info(
+    `Seed complete: ${created} product(s) created, ${updated} updated, ${reviewsInserted} review(s) inserted.`,
+  );
   await disconnectDatabase();
   process.exit(0);
 }

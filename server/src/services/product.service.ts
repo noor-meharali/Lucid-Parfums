@@ -71,6 +71,43 @@ export const productService = {
     return serializeProduct(doc);
   },
 
+  /**
+   * Picks related products by relevance rather than randomly:
+   * fragrance family + gender match first, then fragrance family
+   * alone, then same category, broadening only as needed to fill
+   * `limit` — so a product never ends up "related" to itself or to
+   * something with nothing in common.
+   */
+  async getRelated(product: PublicProduct, limit = 4): Promise<PublicProduct[]> {
+    const excludeSelf = { _id: { $ne: product.id }, isActive: true };
+    const seen = new Set<string>();
+    const results: PublicProduct[] = [];
+
+    const tiers: QueryFilter<ProductAttrs>[] = [
+      { ...excludeSelf, fragranceFamily: product.fragranceFamily, gender: product.gender },
+      { ...excludeSelf, fragranceFamily: product.fragranceFamily },
+      { ...excludeSelf, category: product.category, gender: product.gender },
+      { ...excludeSelf, gender: product.gender },
+    ];
+
+    for (const tier of tiers) {
+      if (results.length >= limit) break;
+
+      const docs = await Product.find(tier)
+        .sort({ rating: -1, reviewCount: -1 })
+        .limit(limit);
+
+      for (const doc of docs) {
+        const id = doc._id.toString();
+        if (seen.has(id) || results.length >= limit) continue;
+        seen.add(id);
+        results.push(serializeProduct(doc));
+      }
+    }
+
+    return results;
+  },
+
   async create(input: CreateProductInput): Promise<PublicProduct> {
     const existingSlug = await Product.findOne({ slug: input.slug });
     if (existingSlug) throw ApiError.badRequest(`A product with slug "${input.slug}" already exists`);

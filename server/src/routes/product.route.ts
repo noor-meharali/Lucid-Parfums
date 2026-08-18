@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   listProducts,
   getProductBySlug,
+  getRelatedProducts,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -19,6 +20,7 @@ const router = Router();
 // Public, read-only.
 router.get('/', validate(productListQuerySchema, 'query'), listProducts);
 router.get('/:slug', getProductBySlug);
+router.get('/:slug/related', getRelatedProducts);
 
 // Admin-only. requireAdmin currently rejects every request until
 // real authentication exists — see middleware/requireAdmin.ts.

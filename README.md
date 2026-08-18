@@ -192,12 +192,38 @@ Real MongoDB-backed products have replaced the mock catalog:
   (`?gender=women&sort=price-low`), and `/men /women /unisex /fragrance` share
   the same fetching hook instead of duplicating it per page
 
+## Product Details, Reviews & Related Products (Part 5)
+
+`/product/:slug` is now a complete product-detail experience, backed entirely
+by the Part 4 API:
+
+- **`ProductGallery`** — thumbnails, previous/next controls, touch swipe, and
+  a lightbox, with loading and broken-image fallbacks built in
+- **`ProductInfoPanel`** — pricing (with discount %), stock status (never an
+  exact inventory count), size selection, quantity, and purchase actions.
+  There's no cart store yet (a later part) — Add to Cart / Buy Now give
+  honest feedback ("coming in an upcoming part") rather than faking a
+  working order flow, the same pattern the Part 2 search UI uses
+- **Reviews** — `server/src/models/Review.ts` + `GET/POST /api/reviews`.
+  Submission is guarded by `middleware/requireAuth.ts`, which fails closed
+  the same way `requireAdmin` does — there is no way to post a review
+  without real authentication (Part 6), and the UI says so plainly instead
+  of pretending it works
+- **Related products** — `productService.getRelated()` picks by relevance
+  (fragrance family + gender, then fragrance family, then category) instead
+  of showing arbitrary products
+- **Recently viewed** — a lightweight, client-only `localStorage` snapshot
+  (`hooks/useRecentlyViewed.ts`); nothing is sent to the backend
+- **SEO** — `hooks/useProductSeo.ts` sets the document title, meta
+  description, and injects Product JSON-LD per product page
+
 ## Status
 
 **Part 1 — Foundation: complete.**
 **Part 2 — Design System & Global UI: complete.**
 **Part 3 — Public Storefront: complete.**
 **Part 4 — Products, Shop, Search, Categories & Filtering: complete.**
+**Part 5 — Product Details, Gallery, Reviews & Related Products: complete.**
 
 - [x] Frontend and backend scaffolded with a clean, modular structure
 - [x] Tailwind CSS v4 configured with the brand palette and full design tokens
@@ -218,6 +244,10 @@ Real MongoDB-backed products have replaced the mock catalog:
 - [x] Shop page and all four collection pages backed by live data
 - [x] Admin write endpoints secured by a fail-closed guard (real auth is a
       later part)
+- [x] Full product detail page: gallery, pricing, stock, sizes, fragrance
+      notes, ingredients, reviews, related products, recently viewed
+- [x] Review submission guarded by the same fail-closed pattern as admin
+      writes, until real authentication exists
 
-**Next: Part 5 — Product Details, Product Gallery, Fragrance Notes, Reviews &
-Related Products.**
+**Next: Part 6 — Secure Authentication, Customer Accounts, Authorization &
+User Roles.**

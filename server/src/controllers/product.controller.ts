@@ -38,6 +38,14 @@ export const getProductBySlug = asyncHandler(async (req: Request, res: Response)
   res.status(200).json(body);
 });
 
+export const getRelatedProducts = asyncHandler(async (req: Request, res: Response) => {
+  const slug = getStringParam(req.params.slug, 'slug');
+  const product = await productService.getBySlug(slug);
+  const related = await productService.getRelated(product, 4);
+  const body: ApiSuccessResponse<PublicProduct[]> = { success: true, data: related };
+  res.status(200).json(body);
+});
+
 export const createProduct = asyncHandler(async (req: Request, res: Response) => {
   const product = await productService.create(req.body);
   const body: ApiSuccessResponse<PublicProduct> = { success: true, message: 'Product created', data: product };
