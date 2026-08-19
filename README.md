@@ -217,6 +217,35 @@ by the Part 4 API:
 - **SEO** — `hooks/useProductSeo.ts` sets the document title, meta
   description, and injects Product JSON-LD per product page
 
+## Authentication & Customer Accounts (Part 6)
+
+Real authentication now backs everything the previous parts left guarded:
+
+- **`server/src/models/User.ts`** — `passwordHash` and password-reset fields
+  are `select: false`, so they're never accidentally included in a query
+  result; `role` defaults to `customer` and is never settable by the client
+- **Session** — JWT in an `httpOnly`, `sameSite=lax` cookie (`secure` in
+  production). The token only carries a user id; role and account status are
+  always re-read from the database on every request, so disabling an account
+  or changing a role takes effect immediately, not just after a token expires
+- **`middleware/requireAuth.ts` and `middleware/requireAdmin.ts` are now real.**
+  These replace the fail-closed stubs from Parts 4 and 5 — the product
+  admin routes and review submission now work correctly with **zero changes**
+  to their own route files, exactly as those stubs' comments promised
+- **Endpoints**: `POST /api/auth/{register,login,logout}`, `GET /api/auth/me`,
+  `POST /api/auth/{forgot-password,reset-password}`, and
+  `GET/PUT /api/users/me` + `POST /api/users/me/password` for profile
+- Login/register/reset endpoints are rate-limited; password reset always
+  returns the same response whether or not the email has an account
+- Password reset tokens are stored as a SHA-256 hash, never in plain text;
+  the raw link is logged to the server's own console in development only
+  (there's no real email provider configured yet — see
+  `server/src/services/email.service.ts`)
+- **Frontend** — `context/AuthContext.tsx` restores the session on load,
+  `components/auth/ProtectedRoute.tsx` guards `/account`, `/orders`,
+  `/wishlist`, and `/admin` (by role). The header and mobile menu adapt to
+  sign-in state, including a conditional Admin link
+
 ## Status
 
 **Part 1 — Foundation: complete.**
@@ -224,6 +253,7 @@ by the Part 4 API:
 **Part 3 — Public Storefront: complete.**
 **Part 4 — Products, Shop, Search, Categories & Filtering: complete.**
 **Part 5 — Product Details, Gallery, Reviews & Related Products: complete.**
+**Part 6 — Authentication, Customer Accounts & Authorization: complete.**
 
 - [x] Frontend and backend scaffolded with a clean, modular structure
 - [x] Tailwind CSS v4 configured with the brand palette and full design tokens
@@ -242,12 +272,13 @@ by the Part 4 API:
       brand story, benefits, testimonials
 - [x] Real MongoDB product catalog with search, filters, sorting, and pagination
 - [x] Shop page and all four collection pages backed by live data
-- [x] Admin write endpoints secured by a fail-closed guard (real auth is a
-      later part)
 - [x] Full product detail page: gallery, pricing, stock, sizes, fragrance
       notes, ingredients, reviews, related products, recently viewed
-- [x] Review submission guarded by the same fail-closed pattern as admin
-      writes, until real authentication exists
+- [x] Real JWT cookie-based authentication: register, login, logout, session
+      restore, forgot/reset password, profile editing, change password
+- [x] Admin and review-write routes now genuinely enforce authorization —
+      not just hidden buttons — with zero changes to their route definitions
+- [x] Protected frontend routes for account, orders, wishlist, and the
+      role-gated admin dashboard
 
-**Next: Part 6 — Secure Authentication, Customer Accounts, Authorization &
-User Roles.**
+**Next: Part 7 — Shopping Cart, Wishlist & Checkout Foundation.**

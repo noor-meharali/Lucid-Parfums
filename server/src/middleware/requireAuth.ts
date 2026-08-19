@@ -1,15 +1,19 @@
 import type { NextFunction, Request, Response } from 'express';
+import { identifyUser } from './identifyUser';
 import { ApiError } from '../utils/ApiError';
 
 /**
- * Guards endpoints that require a signed-in customer. Deliberately
- * fails closed: there is no session/token system yet (Part 6), so no
- * request can be trusted as coming from an authenticated user —
- * regardless of any header or body field a client sends claiming
- * otherwise. Swap this for real session/JWT verification once
- * customer authentication exists; routes using it today will start
- * working correctly with zero changes to their definitions.
+ * Requires a valid, currently-active authenticated user. Populates
+ * `req.user` on success. This replaces the Part 4/5 stub that
+ * rejected every request — routes that used it (review submission)
+ * now work correctly with zero changes to their own definitions.
  */
-export function requireAuth(_req: Request, _res: Response, next: NextFunction): void {
-  next(ApiError.unauthorized('Sign-in is not implemented yet. This action will be available once it is.'));
+export async function requireAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
+  const user = await identifyUser(req);
+  if (!user) {
+    next(ApiError.unauthorized('Please sign in to continue.'));
+    return;
+  }
+  req.user = user;
+  next();
 }

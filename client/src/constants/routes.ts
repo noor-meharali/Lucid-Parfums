@@ -18,6 +18,8 @@ export const ROUTES = {
   WISHLIST: '/wishlist',
   LOGIN: '/login',
   REGISTER: '/register',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
   ADMIN: '/admin',
 } as const;
 

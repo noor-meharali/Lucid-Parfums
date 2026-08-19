@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Menu, Search, User, Heart } from 'lucide-react';
+import { Menu, Search, User, Heart, ShieldCheck } from 'lucide-react';
 import { Logo } from '@/components/common/Logo';
 import { IconButton } from '@/components/common/IconButton';
 import { Modal } from '@/components/common/Modal';
@@ -8,6 +8,7 @@ import { SearchBar } from '@/components/layout/SearchBar';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { CartIcon } from '@/components/cart/CartIcon';
 import { CartDrawer } from '@/components/cart/CartDrawer';
+import { useAuth } from '@/context/AuthContext';
 import { ROUTES } from '@/constants/routes';
 import { PRIMARY_NAV_LINKS } from '@/constants/nav';
 import { cn } from '@/utils/cn';
@@ -22,6 +23,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function Header() {
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -63,7 +65,16 @@ export function Header() {
           <IconButton label="Search" onClick={() => setIsSearchOpen(true)} className="hidden sm:inline-flex">
             <Search className="h-5 w-5" aria-hidden="true" />
           </IconButton>
-          <IconButton label="Account" className="hidden sm:inline-flex" onClick={() => navigate(ROUTES.ACCOUNT)}>
+          {user?.role === 'admin' && (
+            <IconButton label="Admin Dashboard" className="hidden sm:inline-flex" onClick={() => navigate(ROUTES.ADMIN)}>
+              <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+            </IconButton>
+          )}
+          <IconButton
+            label={isAuthenticated ? 'Account' : 'Sign in'}
+            className="hidden sm:inline-flex"
+            onClick={() => navigate(isAuthenticated ? ROUTES.ACCOUNT : ROUTES.LOGIN)}
+          >
             <User className="h-5 w-5" aria-hidden="true" />
           </IconButton>
           <IconButton label="Wishlist" className="hidden sm:inline-flex" onClick={() => navigate(ROUTES.WISHLIST)}>

@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import { MainLayout } from '@/layouts/MainLayout';
 import { AdminLayout } from '@/layouts/AdminLayout';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 import { HomePage } from '@/pages/HomePage';
 import { ShopPage } from '@/pages/ShopPage';
@@ -15,6 +16,8 @@ import { OrdersPage } from '@/pages/OrdersPage';
 import { WishlistPage } from '@/pages/WishlistPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
+import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage';
+import { ResetPasswordPage } from '@/pages/ResetPasswordPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage';
 
@@ -34,18 +37,50 @@ const router = createBrowserRouter([
       { path: ROUTES.PRODUCT_DETAIL, element: <ProductDetailPage /> },
       { path: ROUTES.CART, element: <CartPage /> },
       { path: ROUTES.CHECKOUT, element: <CheckoutPage /> },
-      { path: ROUTES.ACCOUNT, element: <AccountPage /> },
-      { path: ROUTES.ORDERS, element: <OrdersPage /> },
-      { path: ROUTES.WISHLIST, element: <WishlistPage /> },
+      {
+        path: ROUTES.ACCOUNT,
+        element: (
+          <ProtectedRoute>
+            <AccountPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: ROUTES.ORDERS,
+        element: (
+          <ProtectedRoute>
+            <OrdersPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: ROUTES.WISHLIST,
+        element: (
+          <ProtectedRoute>
+            <WishlistPage />
+          </ProtectedRoute>
+        ),
+      },
       { path: ROUTES.LOGIN, element: <LoginPage /> },
       { path: ROUTES.REGISTER, element: <RegisterPage /> },
+      { path: ROUTES.FORGOT_PASSWORD, element: <ForgotPasswordPage /> },
+      { path: ROUTES.RESET_PASSWORD, element: <ResetPasswordPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
   {
     path: ROUTES.ADMIN,
     element: <AdminLayout />,
-    children: [{ index: true, element: <AdminDashboardPage /> }],
+    children: [
+      {
+        index: true,
+        element: (
+          <ProtectedRoute role="admin">
+            <AdminDashboardPage />
+          </ProtectedRoute>
+        ),
+      },
+    ],
   },
 ]);
 

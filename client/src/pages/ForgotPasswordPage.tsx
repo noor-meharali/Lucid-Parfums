@@ -1,22 +1,19 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useLocation, useNavigate, type Location } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { CheckCircle2 } from 'lucide-react';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { AuthFormError } from '@/components/auth/AuthFormError';
 import { Input } from '@/components/form/Input';
 import { Button } from '@/components/common/Button';
-import { useAuth } from '@/context/AuthContext';
+import { authService } from '@/services/authService';
 import { ApiRequestError } from '@/api/client';
 import { ROUTES } from '@/constants/routes';
 
-export function LoginPage() {
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-
+export function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -24,9 +21,8 @@ export function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await login({ email, password });
-      const from = (location.state as { from?: Location } | null)?.from;
-      navigate(from ? `${from.pathname}${from.search}` : ROUTES.HOME, { replace: true });
+      await authService.forgotPassword({ email });
+      setIsSubmitted(true);
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Something went wrong. Please try again.');
     } finally {
@@ -34,8 +30,25 @@ export function LoginPage() {
     }
   }
 
+  if (isSubmitted) {
+    return (
+      <AuthLayout title="Check Your Email">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <CheckCircle2 className="h-8 w-8 text-success" aria-hidden="true" />
+          <p className="text-body-sm text-taupe">
+            If an account exists for <strong className="text-espresso">{email}</strong>, we&rsquo;ve sent a link to
+            reset your password.
+          </p>
+          <Link to={ROUTES.LOGIN} className="mt-2 text-body-sm font-medium text-espresso underline underline-offset-2">
+            Return to sign in
+          </Link>
+        </div>
+      </AuthLayout>
+    );
+  }
+
   return (
-    <AuthLayout title="Welcome Back" description="Sign in to your Lucid Parfums account.">
+    <AuthLayout title="Forgot Password" description="We'll email you a link to reset it.">
       <AuthFormError message={error} />
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
         <Input
@@ -46,25 +59,13 @@ export function LoginPage() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
         />
-        <Input
-          type="password"
-          label="Password"
-          autoComplete="current-password"
-          required
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-        />
-        <Link to={ROUTES.FORGOT_PASSWORD} className="-mt-2 self-end text-body-sm text-taupe hover:text-espresso">
-          Forgot password?
-        </Link>
         <Button type="submit" variant="primary" size="lg" isLoading={isSubmitting} className="mt-2 w-full">
-          Sign In
+          Send Reset Link
         </Button>
       </form>
       <p className="mt-6 text-center text-body-sm text-taupe">
-        Don&rsquo;t have an account?{' '}
-        <Link to={ROUTES.REGISTER} className="font-medium text-espresso underline underline-offset-2">
-          Create one
+        <Link to={ROUTES.LOGIN} className="font-medium text-espresso underline underline-offset-2">
+          Return to sign in
         </Link>
       </p>
     </AuthLayout>

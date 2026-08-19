@@ -2,11 +2,14 @@ import { API_BASE_URL } from '@/constants/config';
 
 export class ApiRequestError extends Error {
   status: number;
+  /** Field-level messages, when the backend responded with validation errors. */
+  errors?: Record<string, string[]>;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, errors?: Record<string, string[]>) {
     super(message);
     this.name = 'ApiRequestError';
     this.status = status;
+    this.errors = errors;
   }
 }
 
@@ -19,6 +22,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...headers,
@@ -31,7 +35,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   if (!response.ok) {
     const message = payload?.message ?? `Request failed with status ${response.status}`;
-    throw new ApiRequestError(message, response.status);
+    throw new ApiRequestError(message, response.status, payload?.errors);
   }
 
   return payload as T;
