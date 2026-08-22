@@ -18,6 +18,8 @@ import { useProductSeo } from '@/hooks/useProductSeo';
 import { useRelatedProducts } from '@/hooks/useRelatedProducts';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import { useToast } from '@/context/ToastContext';
+import { useCart } from '@/context/CartContext';
+import { useRequireAuthAction } from '@/hooks/useRequireAuthAction';
 import { ROUTES } from '@/constants/routes';
 import { GENDER_LABELS, GENDER_ROUTES } from '@/constants/product';
 import { formatPrice } from '@/utils/formatPrice';
@@ -27,6 +29,8 @@ export function ProductDetailPage() {
   const { product, isLoading, error } = useProduct(slug);
   const { products: related, isLoading: isLoadingRelated } = useRelatedProducts(slug);
   const { showToast } = useToast();
+  const { addItem } = useCart();
+  const requireAuthAction = useRequireAuthAction();
 
   useProductSeo(product);
 
@@ -77,7 +81,7 @@ export function ProductDetailPage() {
 
       <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16">
         <ProductGallery images={product.images.length > 0 ? product.images : [product.imageUrl]} alt={product.imageAlt} />
-        <div className="lg:sticky lg:top-24 lg:self-start">
+        <div id="product-info-panel" className="lg:sticky lg:top-24 lg:self-start">
           <ProductInfoPanel product={product} />
         </div>
       </div>
@@ -128,10 +132,23 @@ export function ProductDetailPage() {
           variant="primary"
           size="md"
           disabled={product.stock === 'outOfStock'}
-          onClick={() => showToast('info', 'Cart is coming in an upcoming part.')}
+          onClick={() => {
+            if (product.sizes.length > 0) {
+              document.getElementById('product-info-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              return;
+            }
+            requireAuthAction(async () => {
+              try {
+                await addItem(product.id, 1);
+                showToast('success', `${product.name} added to cart.`);
+              } catch (err) {
+                showToast('error', err instanceof Error ? err.message : 'Could not add to cart.');
+              }
+            });
+          }}
         >
           <ShoppingBag className="h-4 w-4" aria-hidden="true" />
-          Add to Cart
+          {product.sizes.length > 0 ? 'Select Size' : 'Add to Cart'}
         </Button>
       </div>
     </Container>

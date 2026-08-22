@@ -13,6 +13,8 @@ import { CartPage } from '@/pages/CartPage';
 import { CheckoutPage } from '@/pages/CheckoutPage';
 import { AccountPage } from '@/pages/AccountPage';
 import { OrdersPage } from '@/pages/OrdersPage';
+import { OrderDetailPage } from '@/pages/OrderDetailPage';
+import { OrderSuccessPage } from '@/pages/OrderSuccessPage';
 import { WishlistPage } from '@/pages/WishlistPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
@@ -35,8 +37,22 @@ const router = createBrowserRouter([
       { path: ROUTES.FRAGRANCE, element: <CategoryPage title="Fragrance" description="The full Lucid Parfums collection, across every family." /> },
       { path: ROUTES.ABOUT, element: <AboutPage /> },
       { path: ROUTES.PRODUCT_DETAIL, element: <ProductDetailPage /> },
-      { path: ROUTES.CART, element: <CartPage /> },
-      { path: ROUTES.CHECKOUT, element: <CheckoutPage /> },
+      {
+        path: ROUTES.CART,
+        element: (
+          <ProtectedRoute>
+            <CartPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: ROUTES.CHECKOUT,
+        element: (
+          <ProtectedRoute>
+            <CheckoutPage />
+          </ProtectedRoute>
+        ),
+      },
       {
         path: ROUTES.ACCOUNT,
         element: (
@@ -50,6 +66,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <OrdersPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: ROUTES.ORDER_DETAIL,
+        element: (
+          <ProtectedRoute>
+            <OrderDetailPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: ROUTES.ORDER_SUCCESS,
+        element: (
+          <ProtectedRoute>
+            <OrderSuccessPage />
           </ProtectedRoute>
         ),
       },

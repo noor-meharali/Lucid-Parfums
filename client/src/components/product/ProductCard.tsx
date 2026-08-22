@@ -1,8 +1,13 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Heart, ShoppingBag, Star } from 'lucide-react';
 import { ResponsiveImage } from '@/components/common/ResponsiveImage';
 import { Badge, type BadgeVariant } from '@/components/common/Badge';
 import { IconButton } from '@/components/common/IconButton';
+import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
+import { useRequireAuthAction } from '@/hooks/useRequireAuthAction';
+import { useToast } from '@/context/ToastContext';
 import { productPath } from '@/constants/routes';
 import { formatPrice } from '@/utils/formatPrice';
 import { cn } from '@/utils/cn';
@@ -10,9 +15,6 @@ import type { Product } from '@/types/product';
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart?: (product: Product) => void;
-  onToggleWishlist?: (product: Product) => void;
-  isWishlisted?: boolean;
 }
 
 const STOCK_BADGE: Record<Product['stock'], BadgeVariant | null> = {
@@ -27,10 +29,49 @@ const STOCK_LABEL: Record<Product['stock'], string> = {
   outOfStock: 'Out of stock',
 };
 
-export function ProductCard({ product, onAddToCart, onToggleWishlist, isWishlisted = false }: ProductCardProps) {
+export function ProductCard({ product }: ProductCardProps) {
   const stockBadge = STOCK_BADGE[product.stock];
   const isOutOfStock = product.stock === 'outOfStock';
   const onSale = product.salePriceCents !== undefined;
+
+  const navigate = useNavigate();
+  const { addItem } = useCart();
+  const { isWishlisted, toggleProduct } = useWishlist();
+  const requireAuthAction = useRequireAuthAction();
+  const { showToast } = useToast();
+  const [isAdding, setIsAdding] = useState(false);
+  const wishlisted = isWishlisted(product.id);
+
+  function handleAddToCart() {
+    // A sized product needs an explicit size choice — send the
+    // customer to the product page rather than guessing one for them.
+    if (product.sizes.length > 0) {
+      navigate(productPath(product.slug));
+      return;
+    }
+
+    requireAuthAction(async () => {
+      setIsAdding(true);
+      try {
+        await addItem(product.id, 1);
+        showToast('success', `${product.name} added to cart.`);
+      } catch (error) {
+        showToast('error', error instanceof Error ? error.message : 'Could not add to cart.');
+      } finally {
+        setIsAdding(false);
+      }
+    });
+  }
+
+  function handleToggleWishlist() {
+    requireAuthAction(async () => {
+      try {
+        await toggleProduct(product.id);
+      } catch (error) {
+        showToast('error', error instanceof Error ? error.message : 'Could not update your wishlist.');
+      }
+    });
+  }
 
   return (
     <div className="group relative flex flex-col">
@@ -55,20 +96,20 @@ export function ProductCard({ product, onAddToCart, onToggleWishlist, isWishlist
         </div>
 
         <IconButton
-          label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-          onClick={() => onToggleWishlist?.(product)}
+          label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+          onClick={handleToggleWishlist}
           className="absolute right-2 top-2 bg-ivory/90 shadow-soft hover:bg-ivory"
         >
           <Heart
-            className={cn('h-4 w-4', isWishlisted ? 'fill-destructive text-destructive' : 'text-espresso')}
+            className={cn('h-4 w-4', wishlisted ? 'fill-destructive text-destructive' : 'text-espresso')}
             aria-hidden="true"
           />
         </IconButton>
 
         <button
           type="button"
-          onClick={() => onAddToCart?.(product)}
-          disabled={isOutOfStock}
+          onClick={handleAddToCart}
+          disabled={isOutOfStock || isAdding}
           className={cn(
             'absolute inset-x-2 bottom-2 flex h-10 items-center justify-center gap-2 rounded-pill bg-charcoal/90 text-body-sm text-ivory backdrop-blur-sm transition-opacity duration-200',
             'opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100',
@@ -76,7 +117,7 @@ export function ProductCard({ product, onAddToCart, onToggleWishlist, isWishlist
           )}
         >
           <ShoppingBag className="h-4 w-4" aria-hidden="true" />
-          Add to cart
+          {product.sizes.length > 0 ? 'Select size' : 'Add to cart'}
         </button>
       </div>
 

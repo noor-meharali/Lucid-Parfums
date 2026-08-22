@@ -9,10 +9,11 @@ import { MobileNav } from '@/components/layout/MobileNav';
 import { CartIcon } from '@/components/cart/CartIcon';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
 import { ROUTES } from '@/constants/routes';
 import { PRIMARY_NAV_LINKS } from '@/constants/nav';
 import { cn } from '@/utils/cn';
-import type { CartLineItem } from '@/types/cart';
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   cn(
@@ -24,18 +25,11 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 export function Header() {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
+  const { itemCount } = useCart();
+  const { products: wishlistProducts } = useWishlist();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<CartLineItem[]>([]);
-
-  function updateQuantity(id: string, quantity: number) {
-    setCartItems((current) => current.map((item) => (item.id === id ? { ...item, quantity } : item)));
-  }
-
-  function removeItem(id: string) {
-    setCartItems((current) => current.filter((item) => item.id !== id));
-  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-beige bg-ivory/95 backdrop-blur">
@@ -77,10 +71,17 @@ export function Header() {
           >
             <User className="h-5 w-5" aria-hidden="true" />
           </IconButton>
-          <IconButton label="Wishlist" className="hidden sm:inline-flex" onClick={() => navigate(ROUTES.WISHLIST)}>
-            <Heart className="h-5 w-5" aria-hidden="true" />
-          </IconButton>
-          <CartIcon count={cartItems.length} onClick={() => setIsCartOpen(true)} />
+          <div className="relative hidden sm:inline-flex">
+            <IconButton label="Wishlist" onClick={() => navigate(ROUTES.WISHLIST)}>
+              <Heart className="h-5 w-5" aria-hidden="true" />
+            </IconButton>
+            {wishlistProducts.length > 0 && (
+              <span className="pointer-events-none absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[0.625rem] font-medium leading-none text-ivory">
+                {wishlistProducts.length > 99 ? '99+' : wishlistProducts.length}
+              </span>
+            )}
+          </div>
+          <CartIcon count={itemCount} onClick={() => setIsCartOpen(true)} />
         </div>
       </div>
 
@@ -90,13 +91,7 @@ export function Header() {
         <SearchBar variant="desktop" autoFocus />
       </Modal>
 
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        onQuantityChange={updateQuantity}
-        onRemove={removeItem}
-      />
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </header>
   );
 }

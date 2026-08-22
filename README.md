@@ -110,9 +110,11 @@ cd server
 npm run seed
 ```
 
-This populates 15 demo fragrances (upserted by slug, so it's safe to re-run).
-Real product photography can replace the generated placeholder images later —
-just update `primaryImage` / `images` on each product; nothing else changes.
+This populates 15 demo fragrances (upserted by slug), a handful of real
+reviews for some of them, and the two delivery methods (Standard/Express)
+checkout uses — all safe to re-run. Real product photography can replace the
+generated placeholder images later — just update `primaryImage` / `images`
+on each product; nothing else changes.
 
 ## Available Scripts
 
@@ -246,6 +248,39 @@ Real authentication now backs everything the previous parts left guarded:
   `/wishlist`, and `/admin` (by role). The header and mobile menu adapt to
   sign-in state, including a conditional Admin link
 
+## Cart, Wishlist, Checkout & Orders (Part 7)
+
+A real, transactional shopping flow — server-side cart, authenticated wishlist,
+and order creation that can't be manipulated from the frontend:
+
+- **Cart** (`GET/POST/PUT/DELETE /api/cart*`) — server-side per authenticated
+  user only, no localStorage fallback. Every add/update re-checks live stock
+  and price against MongoDB; nothing from the frontend is trusted for either.
+  `CartContext` replaces the Part 2/3 local-state cart in the header — the
+  drawer, page, and icon count are now the same real data everywhere
+- **Wishlist** (`GET/POST/DELETE /api/wishlist/:productId`) — duplicate-safe,
+  authenticated-only. Guests get a clear sign-in prompt (`useRequireAuthAction`)
+  instead of the action silently failing
+- **Addresses** (`GET/POST/PUT /api/addresses*`) — every lookup filters by
+  `{_id, user}` together, so an address id that belongs to a different
+  customer simply matches nothing
+- **Order creation** (`POST /api/orders`) — the security-critical piece:
+  runs inside a real MongoDB transaction with atomic, conditional stock
+  decrements (`$gte` check + `$inc` in one operation), so two customers
+  racing for the last unit can't both succeed, and any failure partway
+  through an order rolls back every decrement already made in it. Prices,
+  totals, and stock are always recalculated server-side from live product
+  data — never accepted from the request. `paymentStatus` can only ever be
+  `'pending'` right now; nothing marks an order paid without a real payment
+  provider, which doesn't exist yet
+- **Order numbers** (`LP-2026-000001`) generated via an atomic counter
+  document, not by counting existing orders — race-condition-free even
+  under concurrent checkouts
+- Full flow: `/cart` → `/checkout` (address, delivery method, Cash on
+  Delivery — Online Payment is visibly present but disabled, since faking
+  a successful online payment isn't acceptable) → `/order-success/:orderNumber`
+  → `/orders` → `/orders/:orderNumber`, all behind `ProtectedRoute`
+
 ## Status
 
 **Part 1 — Foundation: complete.**
@@ -254,6 +289,7 @@ Real authentication now backs everything the previous parts left guarded:
 **Part 4 — Products, Shop, Search, Categories & Filtering: complete.**
 **Part 5 — Product Details, Gallery, Reviews & Related Products: complete.**
 **Part 6 — Authentication, Customer Accounts & Authorization: complete.**
+**Part 7 — Cart, Wishlist, Checkout & Order Creation: complete.**
 
 - [x] Frontend and backend scaffolded with a clean, modular structure
 - [x] Tailwind CSS v4 configured with the brand palette and full design tokens
@@ -280,5 +316,9 @@ Real authentication now backs everything the previous parts left guarded:
       not just hidden buttons — with zero changes to their route definitions
 - [x] Protected frontend routes for account, orders, wishlist, and the
       role-gated admin dashboard
+- [x] Real server-side cart and wishlist, wired into the header, product
+      cards, and product detail page
+- [x] Transactional, stock-safe order creation with atomic order numbers
+- [x] Full checkout → order confirmation → order history flow
 
-**Next: Part 7 — Shopping Cart, Wishlist & Checkout Foundation.**
+**Next: Part 8 — Admin Dashboard, Product Management & Order Management.**

@@ -15,6 +15,8 @@ export const ROUTES = {
   CHECKOUT: '/checkout',
   ACCOUNT: '/account',
   ORDERS: '/orders',
+  ORDER_DETAIL: '/orders/:orderNumber',
+  ORDER_SUCCESS: '/order-success/:orderNumber',
   WISHLIST: '/wishlist',
   LOGIN: '/login',
   REGISTER: '/register',
@@ -24,3 +26,5 @@ export const ROUTES = {
 } as const;
 
 export const productPath = (slug: string): string => `/product/${slug}`;
+export const orderDetailPath = (orderNumber: string): string => `/orders/${orderNumber}`;
+export const orderSuccessPath = (orderNumber: string): string => `/order-success/${orderNumber}`;

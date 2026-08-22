@@ -1,11 +1,16 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Star, Heart, ShoppingBag, Zap } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { QuantityControl } from '@/components/cart/QuantityControl';
 import { SizeSelector } from '@/components/product/SizeSelector';
 import { StockIndicator } from '@/components/product/StockIndicator';
 import { useToast } from '@/context/ToastContext';
+import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
+import { useRequireAuthAction } from '@/hooks/useRequireAuthAction';
 import { GENDER_LABELS } from '@/constants/product';
+import { ROUTES } from '@/constants/routes';
 import { formatPrice } from '@/utils/formatPrice';
 import { cn } from '@/utils/cn';
 import type { Product, ProductSize } from '@/types/product';
@@ -16,29 +21,65 @@ interface ProductInfoPanelProps {
 
 /**
  * The purchase column: pricing, stock, size/quantity selection, and
- * the add-to-cart/buy-now/wishlist actions. There is no cart store
- * yet (a later part), so these actions give honest feedback instead
- * of pretending an order or persistent cart exists — but the
- * interface (product, quantity, size in scope for every handler) is
- * exactly what a real cart integration will need.
+ * the add-to-cart/buy-now/wishlist actions — now wired to the real
+ * cart and wishlist from Part 7.
  */
 export function ProductInfoPanel({ product }: ProductInfoPanelProps) {
+  const navigate = useNavigate();
   const { showToast } = useToast();
+  const { addItem } = useCart();
+  const { isWishlisted, toggleProduct } = useWishlist();
+  const requireAuthAction = useRequireAuthAction();
+
   const [selectedSize, setSelectedSize] = useState<ProductSize | null>(
     product.sizes.find((size) => size.stock > 0) ?? product.sizes[0] ?? null,
   );
   const [quantity, setQuantity] = useState(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const wishlisted = isWishlisted(product.id);
 
   const isOutOfStock = product.stock === 'outOfStock' || (selectedSize ? selectedSize.stock <= 0 : false);
   const onSale = product.salePriceCents !== undefined;
   const discountPercent = onSale
     ? Math.round(((product.priceCents - product.salePriceCents!) / product.priceCents) * 100)
     : 0;
-  const maxQuantity = Math.min(10, selectedSize?.stock ?? 10);
+  const maxQuantity = Math.min(10, selectedSize?.stock ?? product.stockCount ?? 10);
 
-  function handlePurchaseAction(action: 'cart' | 'buy') {
-    showToast('info', action === 'cart' ? 'Cart is coming in an upcoming part.' : 'Checkout is coming in an upcoming part.');
+  async function performAddToCart(): Promise<boolean> {
+    setIsSubmitting(true);
+    try {
+      await addItem(product.id, quantity, selectedSize?.label);
+      return true;
+    } catch (error) {
+      showToast('error', error instanceof Error ? error.message : 'Could not add to cart.');
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function handleAddToCart() {
+    requireAuthAction(async () => {
+      const added = await performAddToCart();
+      if (added) showToast('success', `${product.name} added to cart.`);
+    });
+  }
+
+  function handleBuyNow() {
+    requireAuthAction(async () => {
+      const added = await performAddToCart();
+      if (added) navigate(ROUTES.CHECKOUT);
+    });
+  }
+
+  function handleToggleWishlist() {
+    requireAuthAction(async () => {
+      try {
+        await toggleProduct(product.id);
+      } catch (error) {
+        showToast('error', error instanceof Error ? error.message : 'Could not update your wishlist.');
+      }
+    });
   }
 
   return (
@@ -94,8 +135,8 @@ export function ProductInfoPanel({ product }: ProductInfoPanelProps) {
           variant="primary"
           size="lg"
           className="flex-1"
-          disabled={isOutOfStock}
-          onClick={() => handlePurchaseAction('cart')}
+          disabled={isOutOfStock || isSubmitting}
+          onClick={handleAddToCart}
         >
           <ShoppingBag className="h-4 w-4" aria-hidden="true" />
           Add to Cart
@@ -104,8 +145,8 @@ export function ProductInfoPanel({ product }: ProductInfoPanelProps) {
           variant="dark"
           size="lg"
           className="flex-1"
-          disabled={isOutOfStock}
-          onClick={() => handlePurchaseAction('buy')}
+          disabled={isOutOfStock || isSubmitting}
+          onClick={handleBuyNow}
         >
           <Zap className="h-4 w-4" aria-hidden="true" />
           Buy Now
@@ -113,12 +154,12 @@ export function ProductInfoPanel({ product }: ProductInfoPanelProps) {
         <Button
           variant="outline"
           size="lg"
-          aria-pressed={isWishlisted}
-          onClick={() => setIsWishlisted((prev) => !prev)}
+          aria-pressed={wishlisted}
+          onClick={handleToggleWishlist}
           className="sm:w-14 sm:flex-none sm:px-0"
         >
-          <Heart className={cn('h-4 w-4', isWishlisted && 'fill-destructive text-destructive')} aria-hidden="true" />
-          <span className="sm:hidden">{isWishlisted ? 'Wishlisted' : 'Add to Wishlist'}</span>
+          <Heart className={cn('h-4 w-4', wishlisted && 'fill-destructive text-destructive')} aria-hidden="true" />
+          <span className="sm:hidden">{wishlisted ? 'Wishlisted' : 'Add to Wishlist'}</span>
         </Button>
       </div>
 

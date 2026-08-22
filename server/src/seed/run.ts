@@ -1,8 +1,10 @@
 import { connectDatabase, disconnectDatabase } from '../config/db';
 import { Product } from '../models/Product';
 import { Review } from '../models/Review';
+import { DeliveryMethod } from '../models/DeliveryMethod';
 import { productSeeds } from './products.seed';
 import { reviewSeedsBySlug } from './reviews.seed';
+import { deliveryMethodSeeds } from './deliveryMethods.seed';
 import { logger } from '../utils/logger';
 
 /**
@@ -42,8 +44,14 @@ async function run(): Promise<void> {
     reviewsInserted += reviews.length;
   }
 
+  let deliveryMethodsUpserted = 0;
+  for (const method of deliveryMethodSeeds) {
+    await DeliveryMethod.findOneAndUpdate({ name: method.name }, { $set: method }, { upsert: true });
+    deliveryMethodsUpserted += 1;
+  }
+
   logger.info(
-    `Seed complete: ${created} product(s) created, ${updated} updated, ${reviewsInserted} review(s) inserted.`,
+    `Seed complete: ${created} product(s) created, ${updated} updated, ${reviewsInserted} review(s) inserted, ${deliveryMethodsUpserted} delivery method(s) upserted.`,
   );
   await disconnectDatabase();
   process.exit(0);
